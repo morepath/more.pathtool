@@ -94,8 +94,10 @@ def format_text_helper(infos):
 
 
 def format_csv(f, infos):
-    fieldnames = [u'path', u'directive', u'filename', u'lineno']
-    w = csv.DictWriter(f, fieldnames=fieldnames)
+    fieldnames = [u'path', u'directive', u'filename', u'lineno',
+                  u'view_name', u'request_method']
+    w = csv.DictWriter(f, fieldnames=fieldnames,
+                       extrasaction='ignore')
     w.writeheader()
     for info in infos:
         w.writerow(info)
@@ -116,6 +118,14 @@ def get_path_and_view_info(app_class):
              'lineno': code_info.lineno}
         if isinstance(action, ViewAction):
             d['predicates'] = action.predicates
+            # this makes assumptions about core Morepath we could
+            # get from configuration but we won't bother
+            d['view_name'] = action.predicates.get('name', '')
+            d['request_method'] = action.predicates.get('request_method',
+                                                        'GET')
+            if action.internal:
+                d['path'] = 'internal'
+
         result.append(d)
     result.sort(key=lambda d: (
         d['path'], d['directive'] not in ['path', 'mount']))
