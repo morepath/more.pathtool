@@ -276,3 +276,27 @@ def test_format_text():
 /foo        path flurb
 /muchlonger path flurb2
 '''
+
+
+def test_format_csv():
+    infos = [
+        {
+            'path': '/foo',
+            'directive': 'path',
+            'filelineno': 'flurb',
+        },
+        {
+            'path': '/muchlonger',
+            'directive': 'path',
+            'filelineno': 'flurb2',
+        }
+    ]
+    f = BytesIO()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filelineno\r
+/foo,path,flurb\r
+/muchlonger,path,flurb2\r
+'''
