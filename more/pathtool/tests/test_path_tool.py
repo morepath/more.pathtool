@@ -1,7 +1,9 @@
+import sys
 import morepath
 from more.pathtool.main import get_path_and_view_info, format_text, format_csv
-from io import BytesIO
+from io import StringIO, BytesIO
 
+PY3 = not sys.version_info[0] < 3
 
 def restrict(infos, names):
     result = []
@@ -258,17 +260,17 @@ def test_mounted_app_paths_and_views():
 def test_format_text():
     infos = [
         {
-            'path': '/foo',
-            'directive': 'path',
-            'filelineno': 'flurb',
+            'path': u'/foo',
+            'directive': u'path',
+            'filelineno': u'flurb',
         },
         {
-            'path': '/muchlonger',
-            'directive': 'path',
-            'filelineno': 'flurb2',
+            'path': u'/muchlonger',
+            'directive': u'path',
+            'filelineno': u'flurb2',
         }
     ]
-    f = BytesIO()
+    f = StringIO()
     format_text(f, infos)
 
     s = f.getvalue()
@@ -281,17 +283,20 @@ def test_format_text():
 def test_format_csv():
     infos = [
         {
-            'path': '/foo',
-            'directive': 'path',
-            'filelineno': 'flurb',
+            u'path': u'/foo',
+            u'directive': u'path',
+            u'filelineno': u'flurb',
         },
         {
-            'path': '/muchlonger',
-            'directive': 'path',
-            'filelineno': 'flurb2',
+            u'path': u'/muchlonger',
+            u'directive': u'path',
+            u'filelineno': u'flurb2',
         }
     ]
-    f = BytesIO()
+    if PY3:
+        f = StringIO()
+    else:
+        f = BytesIO()
     format_csv(f, infos)
 
     s = f.getvalue()

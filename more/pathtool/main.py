@@ -51,8 +51,8 @@ def max_length(infos, name):
 
 def format_text(f, infos):
     for line in format_text_helper(infos):
-        f.write(line.encode('utf-8'))
-        f.write('\n')
+        f.write(line)
+        f.write(u'\n')
 
 
 def format_text_helper(infos):
@@ -79,7 +79,7 @@ def format_text_helper(infos):
               u"{filelineno}")
     for info in infos:
         if 'predicates' in info:
-            info['predicates'] = ','.join(
+            info['predicates'] = u','.join(
                 [u'%s=%s' % (name, value)
                  for name, value in sorted(info['predicates'].items())])
             yield t_view.format(
@@ -94,7 +94,7 @@ def format_text_helper(infos):
 
 
 def format_csv(f, infos):
-    fieldnames = ['path', 'directive', 'filelineno']
+    fieldnames = [u'path', u'directive', u'filelineno']
     w = csv.DictWriter(f, fieldnames=fieldnames)
     w.writeheader()
     for info in infos:
@@ -141,7 +141,7 @@ def get_path_and_view_actions(app_class, base_path=''):
 def get_path_actions(app_class, base_path):
     q = Query(PathAction)
     for action, f in q(app_class):
-        path = '/'.join([base_path, normalize_path(action.path)])
+        path = u'/'.join([base_path, normalize_path(action.path)])
         yield action, path
 
 
@@ -150,10 +150,10 @@ def get_view_actions(app_class, base_path, model_to_view, model):
     for class_ in inspect.getmro(model):
         view_actions.extend(model_to_view.get(class_, []))
     for view_action in view_actions:
-        name = view_action.predicates.get('name', '')
+        name = view_action.predicates.get('name', u'')
         path = base_path
         if name:
-            path = path + '/+' + name
+            path = path + u'/+' + name
         yield view_action, path
 
 
