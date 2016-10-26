@@ -285,12 +285,14 @@ def test_format_csv():
         {
             u'path': u'/foo',
             u'directive': u'path',
-            u'filelineno': u'flurb',
+            u'filename': u'flurb.py',
+            u'lineno': 17,
         },
         {
             u'path': u'/muchlonger',
             u'directive': u'path',
-            u'filelineno': u'flurb2',
+            u'filename': u'flurb2.py',
+            u'lineno': 28,
         }
     ]
     if PY3:
@@ -301,7 +303,7 @@ def test_format_csv():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filelineno\r
-/foo,path,flurb\r
-/muchlonger,path,flurb2\r
+path,directive,filename,lineno\r
+/foo,path,flurb.py,17\r
+/muchlonger,path,flurb2.py,28\r
 '''

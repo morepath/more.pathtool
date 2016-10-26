@@ -94,7 +94,7 @@ def format_text_helper(infos):
 
 
 def format_csv(f, infos):
-    fieldnames = [u'path', u'directive', u'filelineno']
+    fieldnames = [u'path', u'directive', u'filename', u'lineno']
     w = csv.DictWriter(f, fieldnames=fieldnames)
     w.writeheader()
     for info in infos:
@@ -108,9 +108,12 @@ def get_path_and_view_info(app_class):
         # XXX in next release of dectate can use directive.directive_name again
         directive_name = directive.configurable._action_classes[
             directive.action_factory]
+        code_info = directive.code_info
         d = {'directive': directive_name,
-             'filelineno': directive.code_info.filelineno(),
-             'path': path}
+             'filelineno': code_info.filelineno(),
+             'path': path,
+             'filename': code_info.path,
+             'lineno': code_info.lineno}
         if isinstance(action, ViewAction):
             d['predicates'] = action.predicates
         result.append(d)
