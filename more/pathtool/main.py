@@ -1,6 +1,8 @@
 from __future__ import print_function
 
+import sys
 import argparse
+import csv
 import inspect
 from dectate import Query
 from dectate.tool import parse_app_class  # XXX implementation detail
@@ -20,27 +22,46 @@ def path_tool(app_class):
     parser = argparse.ArgumentParser(description="Query Morepath paths")
     parser.add_argument('--app', help="Dotted name for App subclass.",
                         type=parse_app_class)
+    parser.add_argument('--format',
+                        default='text',
+                        choices=['text', 'csv'],
+                        help="Format of output. Defaults to plain text.")
+
     args, filters = parser.parse_known_args()
 
     if args.app:
         app_class = args.app
 
-    for line in path_tool_output(app_class):
-        print(line)
+    infos = get_path_and_view_info(app_class)
+
+    f = sys.stdout
+    try:
+        if args.format == 'text':
+            format_text(f, infos)
+        elif args.format == 'csv':
+            format_csv(f, infos)
+    finally:
+        if f is not sys.stdout:
+            f.close()
 
 
 def max_length(infos, name):
     return max([len(d[name]) for d in infos])
 
 
-def path_tool_output(app_class):
-    infos = get_path_and_view_info(app_class)
+def format_text(f, infos):
+    for line in format_text_helper(infos):
+        f.write(line.encode('utf-8'))
+        f.write('\n')
+
+
+def format_text_helper(infos):
     for info in infos:
         if 'predicates' not in info:
             predicates_s = ''
         else:
             predicates_s = ','.join(
-                ['%s=%s' % (name, value)
+                [u'%s=%s' % (name, value)
                  for name, value in sorted(info['predicates'].items())])
         info['predicates_s'] = predicates_s
 
@@ -50,16 +71,16 @@ def path_tool_output(app_class):
 
     max_path_length = max([max_path_length, max_predicates_s_length])
 
-    t_path = ("{path:<{max_path_length}} "
-              "{directive:<{max_directive_length}} "
-              "{filelineno}")
-    t_view = ("{predicates:<{max_path_length}} "
-              "{directive:<{max_directive_length}} "
-              "{filelineno}")
+    t_path = (u"{path:<{max_path_length}} "
+              u"{directive:<{max_directive_length}} "
+              u"{filelineno}")
+    t_view = (u"{predicates:<{max_path_length}} "
+              u"{directive:<{max_directive_length}} "
+              u"{filelineno}")
     for info in infos:
         if 'predicates' in info:
             info['predicates'] = ','.join(
-                ['%s=%s' % (name, value)
+                [u'%s=%s' % (name, value)
                  for name, value in sorted(info['predicates'].items())])
             yield t_view.format(
                 max_path_length=max_path_length,
@@ -70,6 +91,14 @@ def path_tool_output(app_class):
                 max_path_length=max_path_length,
                 max_directive_length=max_directive_length,
                 **info)
+
+
+def format_csv(f, infos):
+    fieldnames = ['path', 'directive', 'filelineno']
+    w = csv.DictWriter(f, fieldnames=fieldnames)
+    w.writeheader()
+    for info in infos:
+        w.writerow(info)
 
 
 def get_path_and_view_info(app_class):

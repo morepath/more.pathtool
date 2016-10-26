@@ -1,5 +1,6 @@
 import morepath
-from more.pathtool.main import get_path_and_view_info
+from more.pathtool.main import get_path_and_view_info, format_text, format_csv
+from io import BytesIO
 
 
 def restrict(infos, names):
@@ -252,3 +253,26 @@ def test_mounted_app_paths_and_views():
         {'path': '/sub/bar', 'directive': 'path'},
         {'path': '/sub/bar', 'directive': 'view'}
     ]
+
+
+def test_format_text():
+    infos = [
+        {
+            'path': '/foo',
+            'directive': 'path',
+            'filelineno': 'flurb',
+        },
+        {
+            'path': '/muchlonger',
+            'directive': 'path',
+            'filelineno': 'flurb2',
+        }
+    ]
+    f = BytesIO()
+    format_text(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+/foo        path flurb
+/muchlonger path flurb2
+'''
