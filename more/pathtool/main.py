@@ -76,6 +76,7 @@ def get_path_and_view_info(app_class):
     result = []
     for action, path in get_path_and_view_actions(app_class):
         directive = action.directive
+        # XXX in next release of dectate can use directive.directive_name again
         directive_name = directive.configurable._action_classes[
             directive.action_factory]
         d = {'directive': directive_name,
