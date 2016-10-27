@@ -280,6 +280,13 @@ def test_format_text():
 '''
 
 
+def io():
+    if PY3:
+        return StringIO()
+    else:
+        return BytesIO()
+
+
 def test_format_csv():
     infos = [
         {
@@ -309,10 +316,7 @@ def test_format_csv():
             u'view_name': 'something',
         }
     ]
-    if PY3:
-        f = StringIO()
-    else:
-        f = BytesIO()
+    f = io()
     format_csv(f, infos)
 
     s = f.getvalue()
@@ -347,4 +351,32 @@ def test_one_app_with_text_format():
     s = f.getvalue()
     assert s == '''\
 /foo path File /fake.py, line 335
+'''
+
+
+def test_one_app_with_csv_format():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    infos[0]['filename'] = 'flurb.py'
+    infos[0]['lineno'] = 17
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filename,lineno,view_name,request_method\r
+/foo,path,flurb.py,17,,\r
 '''
