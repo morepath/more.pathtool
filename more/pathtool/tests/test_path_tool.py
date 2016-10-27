@@ -323,3 +323,28 @@ path,directive,filename,lineno,view_name,request_method\r
 /muchlonger/+edit,view,flurb3.py,1,edit,\r
 internal,view,flurb3.py,4,something,\r
 '''
+
+
+def test_one_app_with_text_format():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    infos[0]['filelineno'] = 'File /fake.py, line 335'
+    f = StringIO()
+    format_text(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+/foo path File /fake.py, line 335
+'''
