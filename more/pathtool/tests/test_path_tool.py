@@ -1,9 +1,11 @@
 import sys
 import morepath
-from more.pathtool.main import get_path_and_view_info, format_text, format_csv
+from more.pathtool.main import (
+    get_path_and_view_info, format_text, format_csv, dotted_name)
 from io import StringIO, BytesIO
 
 PY3 = not sys.version_info[0] < 3
+
 
 def restrict(infos, names):
     result = []
@@ -321,11 +323,11 @@ def test_format_csv():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,view_name,request_method\r
-/foo,path,flurb.py,17,,\r
-/muchlonger,path,flurb2.py,28,,\r
-/muchlonger/+edit,view,flurb3.py,1,edit,\r
-internal,view,flurb3.py,4,something,\r
+path,directive,filename,lineno,model,view_name,request_method\r
+/foo,path,flurb.py,17,,,\r
+/muchlonger,path,flurb2.py,28,,,\r
+/muchlonger/+edit,view,flurb3.py,1,,edit,\r
+internal,view,flurb3.py,4,,something,\r
 '''
 
 
@@ -377,8 +379,8 @@ def test_one_app_with_csv_format():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,view_name,request_method\r
-/foo,path,flurb.py,17,,\r
+path,directive,filename,lineno,model,view_name,request_method\r
+/foo,path,flurb.py,17,test_path_tool.A,,\r
 '''
 
 
@@ -412,9 +414,9 @@ def test_name_and_request_method():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,view_name,request_method\r
-/foo,path,flurb.py,17,,\r
-/foo/+edit,view,flurb.py,20,edit,POST\r
+path,directive,filename,lineno,model,view_name,request_method\r
+/foo,path,flurb.py,17,test_path_tool.A,,\r
+/foo/+edit,view,flurb.py,20,test_path_tool.A,edit,POST\r
 '''
 
 
@@ -448,9 +450,9 @@ def test_internal_view():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,view_name,request_method\r
-/foo,path,flurb.py,17,,\r
-internal,view,flurb.py,20,bar,GET\r
+path,directive,filename,lineno,model,view_name,request_method\r
+/foo,path,flurb.py,17,test_path_tool.A,,\r
+internal,view,flurb.py,20,test_path_tool.A,bar,GET\r
 '''
 
 
@@ -477,6 +479,94 @@ def test_absorb():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,view_name,request_method\r
-/foo/...,path,flurb.py,17,,\r
+path,directive,filename,lineno,model,view_name,request_method\r
+/foo/...,path,flurb.py,17,test_path_tool.A,,\r
 '''
+
+
+def test_sort_paths_and_views():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    class B(object):
+        pass
+
+    @App.path(path='/a', model=A)
+    def get_a():
+        return A()
+
+    @App.path(path='/b', model=B)
+    def get_b():
+        return B()
+
+    @App.view(model=A)
+    def a_default(self, request):
+        return "default"
+
+    @App.view(model=A, name='x')
+    def a_x(self, request):
+        return "x"
+
+    @App.view(model=A, name='y')
+    def a_y(self, request):
+        return "y"
+
+    @App.view(model=A, name='y', request_method='POST')
+    def a_y_post(self, request):
+        return 'y'
+
+    @App.view(model=A, name='y', request_method='PUT')
+    def a_y_put(self, request):
+        return 'y'
+
+    @App.view(model=A, name='y', request_method='DELETE')
+    def a_y_delete(self, request):
+        return 'y'
+
+    @App.view(model=A, name='z')
+    def a_z(self, request):
+        return 'y'
+
+    @App.view(model=A, name='i', internal=True)
+    def a_internal(self, request):
+        return 'i'
+
+    @App.view(model=B)
+    def b_default(self, request):
+        return 'b'
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    for info in infos:
+        info['filename'] = 'flurb.py'
+        info['lineno'] = 17
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    print(s)
+    assert s == '''\
+path,directive,filename,lineno,model,view_name,request_method\r
+/a,path,flurb.py,17,test_path_tool.A,,\r
+/a,view,flurb.py,17,test_path_tool.A,,GET\r
+internal,view,flurb.py,17,test_path_tool.A,i,GET\r
+/a/+x,view,flurb.py,17,test_path_tool.A,x,GET\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,DELETE\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,GET\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,POST\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,PUT\r
+/a/+z,view,flurb.py,17,test_path_tool.A,z,GET\r
+/b,path,flurb.py,17,test_path_tool.B,,\r
+/b,view,flurb.py,17,test_path_tool.B,,GET\r
+'''
+
+
+def test_dotted_name():
+    from morepath.directive import ViewAction
+    assert dotted_name(ViewAction) == 'morepath.directive.ViewAction'

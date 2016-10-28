@@ -95,7 +95,7 @@ def format_text_helper(infos):
 
 def format_csv(f, infos):
     fieldnames = [u'path', u'directive', u'filename', u'lineno',
-                  u'view_name', u'request_method']
+                  u'model', u'view_name', u'request_method']
     w = csv.DictWriter(f, fieldnames=fieldnames,
                        extrasaction='ignore')
     w.writeheader()
@@ -114,6 +114,8 @@ def get_path_and_view_info(app_class):
         d = {'directive': directive_name,
              'filelineno': code_info.filelineno(),
              'path': path,
+             'sort_path': path,
+             'model': dotted_name(action.model),
              'filename': code_info.path,
              'lineno': code_info.lineno}
         if isinstance(action, ViewAction):
@@ -127,9 +129,24 @@ def get_path_and_view_info(app_class):
                 d['path'] = 'internal'
 
         result.append(d)
-    result.sort(key=lambda d: (
-        d['path'], d['directive'] not in ['path', 'mount']))
-    return result
+    return sort_path_and_view_info(result)
+
+
+def directive_sort_key(directive):
+    sort_after = directive not in ['path', 'mount']
+    return sort_after, directive
+
+
+def sort_path_and_view_info(infos):
+    def key(d):
+        return (
+            d['sort_path'],
+            directive_sort_key(d['directive']),
+            d.get('view_name', ''),
+            d.get('request_method', ''),
+            d['filename'],
+            d['lineno'])
+    return sorted(infos, key=key)
 
 
 def get_path_and_view_actions(app_class, base_path=''):
@@ -178,3 +195,7 @@ def normalize_path(path):
     if path.endswith('/'):
         path = path[:-1]
     return path
+
+
+def dotted_name(cls):
+    return cls.__module__ + '.' + cls.__name__
