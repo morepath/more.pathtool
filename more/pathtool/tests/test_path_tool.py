@@ -323,11 +323,11 @@ def test_format_csv():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method\r
-/foo,path,flurb.py,17,,,\r
-/muchlonger,path,flurb2.py,28,,,\r
-/muchlonger/+edit,view,flurb3.py,1,,edit,\r
-internal,view,flurb3.py,4,,something,\r
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,,,,\r
+/muchlonger,path,flurb2.py,28,,,,\r
+/muchlonger/+edit,view,flurb3.py,1,,edit,,\r
+internal,view,flurb3.py,4,,something,,\r
 '''
 
 
@@ -379,8 +379,8 @@ def test_one_app_with_csv_format():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method\r
-/foo,path,flurb.py,17,test_path_tool.A,,\r
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,\r
 '''
 
 
@@ -414,9 +414,46 @@ def test_name_and_request_method():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method\r
-/foo,path,flurb.py,17,test_path_tool.A,,\r
-/foo/+edit,view,flurb.py,20,test_path_tool.A,edit,POST\r
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,\r
+/foo/+edit,view,flurb.py,20,test_path_tool.A,edit,POST,\r
+'''
+
+
+def test_extra_predicates():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    class B(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    @App.view(model=A, body_model=B, request_method='POST')
+    def post_a(self, request):
+        return A()
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    for info in infos:
+        info['filename'] = 'flurb.py'
+        info['lineno'] = 17
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,\r
+/foo,view,flurb.py,17,test_path_tool.A,,POST,y\r
 '''
 
 
@@ -450,9 +487,9 @@ def test_internal_view():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method\r
-/foo,path,flurb.py,17,test_path_tool.A,,\r
-internal,view,flurb.py,20,test_path_tool.A,bar,GET\r
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,\r
+internal,view,flurb.py,20,test_path_tool.A,bar,GET,\r
 '''
 
 
@@ -479,8 +516,8 @@ def test_absorb():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method\r
-/foo/...,path,flurb.py,17,test_path_tool.A,,\r
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/foo/...,path,flurb.py,17,test_path_tool.A,,,\r
 '''
 
 
@@ -550,20 +587,19 @@ def test_sort_paths_and_views():
     format_csv(f, infos)
 
     s = f.getvalue()
-    print(s)
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method\r
-/a,path,flurb.py,17,test_path_tool.A,,\r
-/a,view,flurb.py,17,test_path_tool.A,,GET\r
-internal,view,flurb.py,17,test_path_tool.A,i,GET\r
-/a/+x,view,flurb.py,17,test_path_tool.A,x,GET\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,DELETE\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,GET\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,POST\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,PUT\r
-/a/+z,view,flurb.py,17,test_path_tool.A,z,GET\r
-/b,path,flurb.py,17,test_path_tool.B,,\r
-/b,view,flurb.py,17,test_path_tool.B,,GET\r
+path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
+/a,path,flurb.py,17,test_path_tool.A,,,\r
+/a,view,flurb.py,17,test_path_tool.A,,GET,\r
+internal,view,flurb.py,17,test_path_tool.A,i,GET,\r
+/a/+x,view,flurb.py,17,test_path_tool.A,x,GET,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,DELETE,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,GET,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,POST,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,y,PUT,\r
+/a/+z,view,flurb.py,17,test_path_tool.A,z,GET,\r
+/b,path,flurb.py,17,test_path_tool.B,,,\r
+/b,view,flurb.py,17,test_path_tool.B,,GET,\r
 '''
 
 

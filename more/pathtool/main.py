@@ -95,7 +95,8 @@ def format_text_helper(infos):
 
 def format_csv(f, infos):
     fieldnames = [u'path', u'directive', u'filename', u'lineno',
-                  u'model', u'view_name', u'request_method']
+                  u'model', u'view_name', u'request_method',
+                  u'extra_predicates']
     w = csv.DictWriter(f, fieldnames=fieldnames,
                        extrasaction='ignore')
     w.writeheader()
@@ -125,6 +126,9 @@ def get_path_and_view_info(app_class):
             d['view_name'] = action.predicates.get('name', '')
             d['request_method'] = action.predicates.get('request_method',
                                                         'GET')
+            if (set(action.predicates.keys()) - set(
+                    ['name', 'request_method'])):
+                d['extra_predicates'] = 'y'
             if action.internal:
                 d['path'] = 'internal'
 
