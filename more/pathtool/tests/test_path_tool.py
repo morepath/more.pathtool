@@ -416,3 +416,67 @@ path,directive,filename,lineno,view_name,request_method\r
 /foo,path,flurb.py,17,,\r
 /foo/+edit,view,flurb.py,20,edit,POST\r
 '''
+
+
+def test_internal_view():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    @App.view(model=A, name='bar', internal=True)
+    def a_default(self, request):
+        return "default"
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    infos[0]['filename'] = 'flurb.py'
+    infos[0]['lineno'] = 17
+
+    infos[1]['filename'] = 'flurb.py'
+    infos[1]['lineno'] = 20
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filename,lineno,view_name,request_method\r
+/foo,path,flurb.py,17,,\r
+internal,view,flurb.py,20,bar,GET\r
+'''
+
+
+def test_absorb():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A, absorb=True)
+    def get_a():
+        return A()
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    infos[0]['filename'] = 'flurb.py'
+    infos[0]['lineno'] = 17
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filename,lineno,view_name,request_method\r
+/foo/...,path,flurb.py,17,,\r
+'''

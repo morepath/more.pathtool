@@ -155,6 +155,8 @@ def get_path_actions(app_class, base_path):
     q = Query(PathAction)
     for action, f in q(app_class):
         path = u'/'.join([base_path, normalize_path(action.path)])
+        if action.absorb:
+            path += '/...'
         yield action, path
 
 
