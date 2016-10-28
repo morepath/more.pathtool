@@ -380,3 +380,39 @@ def test_one_app_with_csv_format():
 path,directive,filename,lineno,view_name,request_method\r
 /foo,path,flurb.py,17,,\r
 '''
+
+
+def test_name_and_request_method():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    @App.view(model=A, name='edit', request_method='POST')
+    def a_default(self, request):
+        return "default"
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    infos[0]['filename'] = 'flurb.py'
+    infos[0]['lineno'] = 17
+
+    infos[1]['filename'] = 'flurb.py'
+    infos[1]['lineno'] = 20
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filename,lineno,view_name,request_method\r
+/foo,path,flurb.py,17,,\r
+/foo/+edit,view,flurb.py,20,edit,POST\r
+'''
