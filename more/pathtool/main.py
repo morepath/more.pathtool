@@ -36,10 +36,10 @@ def path_tool(app_class):
     infos = get_path_and_view_info(app_class)
 
     if args.format == 'text':
-        with open(args.filename, 'r') as f:
+        with open(args.filename, 'w') as f:
             format_text(f, infos)
     elif args.format == 'csv':
-        with open(args.filename, 'rb') as f:
+        with open(args.filename, 'wb') as f:
             format_csv(f, infos)
 
 
@@ -173,6 +173,8 @@ def get_path_and_view_actions(app_class, base_path=''):
 def get_path_actions(app_class, base_path):
     q = Query(PathAction)
     for action, f in q(app_class):
+        if not isinstance(action, (PathAction, MountAction)):
+            continue
         path = u'/'.join([base_path, normalize_path(action.path)])
         if action.absorb:
             path += '/...'

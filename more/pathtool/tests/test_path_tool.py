@@ -606,3 +606,36 @@ internal,view,flurb.py,17,test_path_tool.A,i,GET,\r
 def test_dotted_name():
     from morepath.directive import ViewAction
     assert dotted_name(ViewAction) == 'morepath.directive.ViewAction'
+
+
+def test_defer_doesnt_break_tool():
+    class App(morepath.App):
+        pass
+
+    class Sub(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    @App.mount(path='/sub', app=Sub)
+    def get_sub():
+        return Sub()
+
+    @Sub.defer_links(model=A)
+    def defer_a(app, obj):
+        return app.parent
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+    infos = restrict(infos, ['path', 'directive'])
+
+    assert infos == [
+        {'path': '/foo', 'directive': 'path'},
+        {'path':'/sub', 'directive': 'mount'}
+    ]
