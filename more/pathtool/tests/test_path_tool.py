@@ -637,5 +637,5 @@ def test_defer_doesnt_break_tool():
 
     assert infos == [
         {'path': '/foo', 'directive': 'path'},
-        {'path':'/sub', 'directive': 'mount'}
+        {'path': '/sub', 'directive': 'mount'}
     ]
