@@ -7,7 +7,7 @@ long_description = (
     io.open('CHANGES.txt', encoding='utf-8').read())
 
 setup(name='more.pathtool',
-      version='0.1.dev0',
+      version='0.5',
       description="Information about path configuration in Morepath",
       long_description=long_description,
       author="Martijn Faassen",
