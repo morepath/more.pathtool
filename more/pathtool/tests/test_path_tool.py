@@ -308,6 +308,7 @@ def test_format_csv():
             u'directive': u'view',
             u'filename': u'flurb3.py',
             u'lineno': 1,
+            u'permission': 'public',
             u'view_name': 'edit',
         },
         {
@@ -315,6 +316,7 @@ def test_format_csv():
             u'directive': u'view',
             u'filename': u'flurb3.py',
             u'lineno': 4,
+            u'permission': 'internal',
             u'view_name': 'something',
         }
     ]
@@ -323,11 +325,11 @@ def test_format_csv():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/foo,path,flurb.py,17,,,,\r
-/muchlonger,path,flurb2.py,28,,,,\r
-/muchlonger/+edit,view,flurb3.py,1,,edit,,\r
-internal,view,flurb3.py,4,,something,,\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,,,,,\r
+/muchlonger,path,flurb2.py,28,,,,,\r
+/muchlonger/+edit,view,flurb3.py,1,,public,edit,,\r
+internal,view,flurb3.py,4,,internal,something,,\r
 '''
 
 
@@ -379,8 +381,8 @@ def test_one_app_with_csv_format():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/foo,path,flurb.py,17,test_path_tool.A,,,\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,,\r
 '''
 
 
@@ -414,9 +416,9 @@ def test_name_and_request_method():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/foo,path,flurb.py,17,test_path_tool.A,,,\r
-/foo/+edit,view,flurb.py,20,test_path_tool.A,edit,POST,\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,,\r
+/foo/+edit,view,flurb.py,20,test_path_tool.A,public,edit,POST,\r
 '''
 
 
@@ -451,9 +453,9 @@ def test_extra_predicates():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/foo,path,flurb.py,17,test_path_tool.A,,,\r
-/foo,view,flurb.py,17,test_path_tool.A,,POST,y\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,,\r
+/foo,view,flurb.py,17,test_path_tool.A,public,,POST,y\r
 '''
 
 
@@ -487,9 +489,9 @@ def test_internal_view():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/foo,path,flurb.py,17,test_path_tool.A,,,\r
-internal,view,flurb.py,20,test_path_tool.A,bar,GET,\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,,\r
+internal,view,flurb.py,20,test_path_tool.A,internal,bar,GET,\r
 '''
 
 
@@ -516,8 +518,8 @@ def test_absorb():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/foo/...,path,flurb.py,17,test_path_tool.A,,,\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo/...,path,flurb.py,17,test_path_tool.A,,,,\r
 '''
 
 
@@ -588,18 +590,18 @@ def test_sort_paths_and_views():
 
     s = f.getvalue()
     assert s == '''\
-path,directive,filename,lineno,model,view_name,request_method,extra_predicates\r
-/a,path,flurb.py,17,test_path_tool.A,,,\r
-/a,view,flurb.py,17,test_path_tool.A,,GET,\r
-internal,view,flurb.py,17,test_path_tool.A,i,GET,\r
-/a/+x,view,flurb.py,17,test_path_tool.A,x,GET,\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,DELETE,\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,GET,\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,POST,\r
-/a/+y,view,flurb.py,17,test_path_tool.A,y,PUT,\r
-/a/+z,view,flurb.py,17,test_path_tool.A,z,GET,\r
-/b,path,flurb.py,17,test_path_tool.B,,,\r
-/b,view,flurb.py,17,test_path_tool.B,,GET,\r
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/a,path,flurb.py,17,test_path_tool.A,,,,\r
+/a,view,flurb.py,17,test_path_tool.A,public,,GET,\r
+internal,view,flurb.py,17,test_path_tool.A,internal,i,GET,\r
+/a/+x,view,flurb.py,17,test_path_tool.A,public,x,GET,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,public,y,DELETE,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,public,y,GET,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,public,y,POST,\r
+/a/+y,view,flurb.py,17,test_path_tool.A,public,y,PUT,\r
+/a/+z,view,flurb.py,17,test_path_tool.A,public,z,GET,\r
+/b,path,flurb.py,17,test_path_tool.B,,,,\r
+/b,view,flurb.py,17,test_path_tool.B,public,,GET,\r
 '''
 
 
@@ -639,3 +641,40 @@ def test_defer_doesnt_break_tool():
         {'path': '/foo', 'directive': 'path'},
         {'path': '/sub', 'directive': 'mount'}
     ]
+
+
+def test_permissions():
+    class App(morepath.App):
+        pass
+
+    class A(object):
+        pass
+
+    @App.path(path='/foo', model=A)
+    def get_a():
+        return A()
+
+    class ReadPermission(object):
+        pass
+
+    @App.view(model=A, permission=ReadPermission)
+    def a_default(self, request):
+        pass
+
+    App.commit()
+
+    infos = get_path_and_view_info(App)
+
+    for info in infos:
+        info['filename'] = 'flurb.py'
+        info['lineno'] = 17
+
+    f = io()
+    format_csv(f, infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path,directive,filename,lineno,model,permission,view_name,request_method,extra_predicates\r
+/foo,path,flurb.py,17,test_path_tool.A,,,,\r
+/foo,view,flurb.py,17,test_path_tool.A,test_path_tool.ReadPermission,,GET,\r
+'''
