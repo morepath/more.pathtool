@@ -1,11 +1,10 @@
 CHANGES
 *******
 
-0.7 (unreleased)
-================
+0.6.1 (unreleased)
+==================
 
-- Nothing changed yet.
-
+- Fix README; it was naming the csv-dialect option wrong.
 
 0.6 (2016-11-09)
 ================
