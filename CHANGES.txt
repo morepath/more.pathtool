@@ -4,8 +4,12 @@ CHANGES
 0.6 (unreleased)
 ================
 
-- Nothing changed yet.
+- Added the ``--csv-dialect`` option so you can indicate the CSV
+  dialect to use.
 
+- Added a ``europe`` dialect where the delimiter is ``;``, not
+  ``,``. This to support Excel in Europe, as its CSV format is
+  locale-dependent. (why...)
 
 0.5 (2016-11-01)
 ================

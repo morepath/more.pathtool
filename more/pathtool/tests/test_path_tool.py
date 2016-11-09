@@ -321,7 +321,7 @@ def test_format_csv():
         }
     ]
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -330,6 +330,50 @@ path,directive,filename,lineno,model,permission,view_name,request_method,extra_p
 /muchlonger,path,flurb2.py,28,,,,,\r
 /muchlonger/+edit,view,flurb3.py,1,,public,edit,,\r
 internal,view,flurb3.py,4,,internal,something,,\r
+'''
+
+
+def test_format_csv_europe_delimiter():
+    infos = [
+        {
+            u'path': u'/foo',
+            u'directive': u'path',
+            u'filename': u'flurb.py',
+            u'lineno': 17,
+        },
+        {
+            u'path': u'/muchlonger',
+            u'directive': u'path',
+            u'filename': u'flurb2.py',
+            u'lineno': 28,
+        },
+        {
+            u'path': u'/muchlonger/+edit',
+            u'directive': u'view',
+            u'filename': u'flurb3.py',
+            u'lineno': 1,
+            u'permission': 'public',
+            u'view_name': 'edit',
+        },
+        {
+            u'path': u'internal',
+            u'directive': u'view',
+            u'filename': u'flurb3.py',
+            u'lineno': 4,
+            u'permission': 'internal',
+            u'view_name': 'something',
+        }
+    ]
+    f = io()
+    format_csv(f, 'europe', infos)
+
+    s = f.getvalue()
+    assert s == '''\
+path;directive;filename;lineno;model;permission;view_name;request_method;extra_predicates\r
+/foo;path;flurb.py;17;;;;;\r
+/muchlonger;path;flurb2.py;28;;;;;\r
+/muchlonger/+edit;view;flurb3.py;1;;public;edit;;\r
+internal;view;flurb3.py;4;;internal;something;;\r
 '''
 
 
@@ -377,7 +421,7 @@ def test_one_app_with_csv_format():
     infos[0]['lineno'] = 17
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -412,7 +456,7 @@ def test_name_and_request_method():
     infos[1]['lineno'] = 20
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -449,7 +493,7 @@ def test_extra_predicates():
         info['lineno'] = 17
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -485,7 +529,7 @@ def test_internal_view():
     infos[1]['lineno'] = 20
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -514,7 +558,7 @@ def test_absorb():
     infos[0]['lineno'] = 17
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -586,7 +630,7 @@ def test_sort_paths_and_views():
         info['lineno'] = 17
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\
@@ -670,7 +714,7 @@ def test_permissions():
         info['lineno'] = 17
 
     f = io()
-    format_csv(f, infos)
+    format_csv(f, 'excel', infos)
 
     s = f.getvalue()
     assert s == '''\

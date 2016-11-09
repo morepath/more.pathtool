@@ -7,11 +7,12 @@ what paths a Morepath application supports, including views and mounted
 applications. It does this by reading the configuration information of
 a Morepath application.
 
-To create such a tool you do the following, for instance in the
-``main.py`` of your project::
+To create such a tool you do the following, for instance in 
+``tool.py`` of your project::
 
   from more.pathtool import path_tool
   from .someplace import SomeApp
+
 
   def my_path_tool():
       SomeApp.commit()
@@ -25,9 +26,11 @@ available::
 
     entry_points={
         'console_scripts': [
-            'morepathtool = myproject.main:path_tool',
+            'morepathtool = myproject.tool:my_path_tool',
         ]
     },
+
+You also need to include ``more.pathtool`` in your setup requirements.
 
 After you install your project, you should now have a ``morepathtool``
 tool available that lets you query your project for path information.
@@ -38,7 +41,9 @@ about paths in your application::
   $ morepathtool paths.csv
 
 You can open it in a spreadsheet application such as Excel or
-OpenOffice Calc.
+OpenOffice Calc. Note that if you your locale is European you have to
+add ``-csv-format=europe`` to set the CVS writer to use ``;``` as the
+delimiter instead of ``,`` so that Excel can read it.
 
 Columns
 -------
