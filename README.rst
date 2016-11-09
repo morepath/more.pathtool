@@ -42,7 +42,7 @@ about paths in your application::
 
 You can open it in a spreadsheet application such as Excel or
 OpenOffice Calc. Note that if you your locale is European you have to
-add ``-csv-format=europe`` to set the CVS writer to use ``;``` as the
+add ``-csv-dialect=europe`` to set the CVS writer to use ``;``` as the
 delimiter instead of ``,`` so that Excel can read it.
 
 Columns
