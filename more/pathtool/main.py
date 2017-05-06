@@ -3,12 +3,22 @@ from __future__ import print_function
 import argparse
 import csv
 import inspect
+import sys
 from dectate import Query
 from dectate.tool import parse_app_class  # XXX implementation detail
 from morepath.directive import ViewAction, PathAction, MountAction
 
 
+PY3 = not sys.version_info[0] < 3
+
 csv.register_dialect('europe', delimiter=';')
+
+
+def open_for_csv(filename):
+    if PY3:
+        return open(filename, 'w', newline='', encoding='utf8')
+    else:
+        return open(filename, 'wb')
 
 
 def path_tool(app_class):
@@ -49,7 +59,7 @@ def path_tool(app_class):
         with open(args.filename, 'w') as f:
             format_text(f, infos)
     elif args.format == 'csv':
-        with open(args.filename, 'wb') as f:
+        with open_for_csv(args.filename) as f:
             format_csv(f, csv_dialect, infos)
 
 
